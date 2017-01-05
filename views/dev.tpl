@@ -44,6 +44,9 @@
   
   <div><h2><em>The Data</em><h2> </div>
   
+  <h3>Schema diagram</h3>
+  <img src="/static/images/schema.PNG">
+  
   <h3>Insert sample data</h3>
   Click <a href="insertSampleData">here</a> to insert the sample data.  Note that it may take a minute or two.
   
@@ -222,6 +225,46 @@
   <p>
     The following video will walk you through the steps above, so you can visualize the orders.
   	<iframe width="560" height="315" src="https://www.youtube.com/embed/x0LHRZiGL8A?list=PLzpeuWUENMK0pcQ2z5jDlhB54ACZ0dkI5" frameborder="0" allowfullscreen></iframe>
+  </p>
+  
+  </div> <!-- end of the hero-unit-->
+  </div> <!-- end of the container-->
+  
+<div class="container">
+<div class="hero-unit">  
+
+  <div><h2><em>The Recommendation Engine</em><h2> </div>
+  
+  <p> 
+    One of the biggest strengths of using a graph database is the ability to quickly generate 
+    recommendations for your users.  This app generates three recommendations for its users on the 
+    home page.  The recommendation engine used in this app is based on the 
+    <a href="http://tinkerpop.apache.org/docs/current/recipes/#recommendation">
+    Apache TinkerPop recipe for recommendations. </a>
+  <p>
+    The app generates personalized recommendations for a user who is authenticated by looking for 
+    other users who have bought the same prints and seeing what they have purchased.  Below is 
+    a detailed flow of the personalized recommendations:
+    <ol>
+    	<li> Find the node associated with the authenticated user. </li>
+    	<li> Traverse the "buys" edges to find all of the print nodes the authenticated user has bought. </li>
+    	<li> Traverse the "buys" edges to find all of the user nodes (excluding the authenticated user) who have purchased this set of prints. </li>
+    	<li> Traverse the "buys" edges to find all of the prints (excluding the prints the authenticated user has bought) this set of users has bought. </li>
+    	<li> Group and sort the print nodes to determine the top three prints this set of users has bought. </li>
+    </ol>
+  </p>
+  <p>
+    If less than three recommendations are generated (for example, if the user is not authenticated or if 
+    the user loves the site and has purchased all of the prints), the app searches for the most purchased
+    prints and presents them in the remaining recommendation spots.
+  </p>
+  <p>
+    Take a look at getRecommendedPrints() in 
+    <a href="https://hub.jazz.net/project/lhayward/Laurens%20Lovely%20Landscapes%20%28IBM%20Graph%29/overview#https://hub.jazz.net/git/lhayward%252FLaurens.Lovely.Landscapes.%2528IBM.Graph%2529/contents/master/graph.py">
+    graph.py</a> to see the associated code.
+  </p>
+  <p>
+    Video coming soon.
   </p>
 
 % include footer

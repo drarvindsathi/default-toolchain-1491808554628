@@ -41,6 +41,8 @@ def getAllPrints():
     return prints
 
 def getRecommendedPrints(username):
+    # Code based on Apache TinkerPop recipe for recommendations:
+    # http://tinkerpop.apache.org/docs/current/recipes/#recommendation
     if not username:
         username = ""
  
