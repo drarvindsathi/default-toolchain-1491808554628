@@ -62,9 +62,11 @@ def server_static(filename):
 @bottle.get("/")
 @bottle.get("/home")
 def getHome():
+	username = request.get_cookie("account", secret=constants.COOKIE_KEY)
 	return bottle.template('home', 
-						username = request.get_cookie("account", secret=constants.COOKIE_KEY), 
-						prints = graph.getAllPrints())
+						username = username, 
+						prints = graph.getAllPrints(),
+						recommendedPrints = graph.getRecommendedPrints(username))
 
 # Displays the page for the designated print
 @bottle.get("/print/<printName>")
@@ -182,7 +184,7 @@ def registerUser():
 							email=email,
 							redirectUrl=redirectUrl)
 		
-# Displays the registration page
+# Displays the profile page
 @bottle.get("/profile")
 def getProfile():
 	username = request.get_cookie("account", secret=constants.COOKIE_KEY)
@@ -193,6 +195,7 @@ def getProfile():
  							message='You need to sign in before you can edit your profile.')
 	return bottle.template('profile', username = username, userInfo = graph.getUser(username))
 
+# Handles the Edit Profile form
 @bottle.post('/profile')
 def updateProfile():
 	userNodeId = request.forms.get("userNodeId")

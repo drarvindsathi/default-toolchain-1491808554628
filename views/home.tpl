@@ -20,20 +20,41 @@
 				Sorry!  No prints are currently available for sale.
 			</p>
 		% end
+		<br>
 		
-		<div class='container'>
-			<div class='row'>
+		% if len(recommendedPrints) > 0:
+			<h3>Recommended for you</h3>
+			<div class='container'>
+				<div class='row'>		
+						% for r in recommendedPrints:			
+							<div class="preview span3">
+								<a href="print/{{r['name']}}">
+									{{r['name']}}<br>
+									<img src="/static/images/{{r['imgPath']}}" class="thumb">
+								</a>
+							</div>
+						% end
+				</div>
+			</div> 
+		% end
 		
-				% for p in prints:				
-					<div class="preview span3">
-						<a href="print/{{p['properties']['name'][0]['value']}}">
-							{{p['properties']['name'][0]['value']}}<br>
-							<img src="/static/images/{{p['properties']['imgPath'][0]['value']}}" class="thumb">
-						</a>
-					</div>
-				% end
-			
-			</div>
-		</div> 
+		<br>
+		
+		% if len(prints) > 0:
+			<h3>All prints</h3>
+			<div class='container'>
+				<div class='row'>		
+						% for p in prints:				
+							<div class="preview span3">
+								<a href="print/{{p['properties']['name'][0]['value']}}">
+									{{p['properties']['name'][0]['value']}}<br>
+									<img src="/static/images/{{p['properties']['imgPath'][0]['value']}}" class="thumb">
+								</a>
+							</div>
+						% end
+				</div>
+			</div> 
+		% end
+
 
 % include footer

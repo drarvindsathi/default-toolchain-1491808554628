@@ -23,16 +23,18 @@
   <h3>No prints listed on the home page?</h3>
   <a href="insertSampleData">Insert the sample data</a>.
   
-  <h3>Like videos?</h3>
-  Me too!  Get the inside scoop on how I developed the app in my <a href="https://developer.ibm.com/clouddataservices/docs/graph/how-to/e2e-use-case/">video series</a>.
-
   <h3>Want your own copy of the app?</h3>
   I thought you might.  Get a copy of my code <a href="https://hub.jazz.net/project/lhayward/Laurens%20Lovely%20Landscapes%20%28IBM%20Graph%29/overview">here</a>.
-  Or you can deploy the app to Bluemix with the simple click of a button:
+  Or you can deploy the app to Bluemix (so you can see it running live and make changes to it) with the simple click of a button:
   
   <p>
     <a href="https://bluemix.net/deploy?repository=https://hub.jazz.net/git/lhayward/Laurens.Lovely.Landscapes.(IBM.Graph)" # [required]><img src="https://bluemix.net/deploy/button.png" alt="Deploy to Bluemix"></a>	
   </p>  
+  
+  <h3>Like videos?</h3>
+  Me too!  Get the inside scoop on how I developed the app in my video series below.
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/ZQbYSEaUrTo?list=PLzpeuWUENMK0pcQ2z5jDlhB54ACZ0dkI5" frameborder="0" allowfullscreen></iframe>
+  
 
   </div> <!-- end of the hero-unit-->
   </div> <!-- end of the container-->
@@ -207,7 +209,7 @@
   	    </li>
   		<li> Log into <a href="http://bluemix.net" target="_blank">Bluemix</a> </li>
   		<li> In the Services section of the Dashboard, click on your app's Graph instance </li>
-  		<li> Click <b>Open</b> </li>
+  		<li> Click <strong>Open</strong> </li>
   		<li> In the menu at the top of the page, select <strong>landscapes_graph</strong> to switch to the graph with your app's data (<strong>g</strong> is selected by default)
   		<li> Input a Gremlin query like the following and execute it: 
   			<code>
@@ -218,7 +220,8 @@
   </p>
   
   <p>
-  	Video coming soon.
+    The following video will walk you through the steps above, so you can visualize the orders.
+  	<iframe width="560" height="315" src="https://www.youtube.com/embed/x0LHRZiGL8A?list=PLzpeuWUENMK0pcQ2z5jDlhB54ACZ0dkI5" frameborder="0" allowfullscreen></iframe>
   </p>
 
 % include footer

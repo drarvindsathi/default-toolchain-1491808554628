@@ -3,6 +3,7 @@ import json
 import time
 import datetime
 import constants
+from operator import itemgetter
 
 schemaFileLocation='schema.json'
 headers=''
@@ -38,6 +39,110 @@ def getAllPrints():
         raise ValueError('An error occurred while getting the prints: %s. %s' %
                          (response.status_code, response.content))
     return prints
+
+def getRecommendedPrints(username):
+    if not username:
+        username = ""
+ 
+    prints = []
+    
+    # Search for recommended prints for the given user based on
+    # what prints other users who have also purchased one or more
+    # of the same prints have purchased. Results will be sorted
+    # so the top 3 most popular prints among the users will be 
+    # displayed first    
+    gremlin = {
+        # create a new traversal
+        "gremlin": "def gt = graph.traversal();" + 
+            # create a function that handles storing both the image name and image path in the results
+            "java.util.function.Function byNameImgPath = { Vertex v -> \"\" + v.value(\"name\") + \":\" + v.value(\"imgPath\") };" +
+            # search for the signed-in user and name them 'buyer'
+            "gt.V().hasLabel(\"user\").has(\"username\", \"" + username + "\").as(\"buyer\")" +
+            # go out from the buyer node to find all of the prints the buyer has purchased
+            # and name them 'bought'
+            ".out(\"buys\").aggregate(\"bought\")" +
+            # go in to find all users (except for our 'buyer') who have purchased at 
+            # least one of these prints. remove duplicates as we only need to find 
+            # each buyer once.
+            ".in(\"buys\").where(neq(\"buyer\")).dedup()" + 
+            # go out to find the prints these users have purchased. exclude the prints
+            # that the 'buyer' has already 'bought'
+            ".out(\"buys\").where(without(\"bought\"))" +
+            # group and sort to find the top 3 recommendations
+            ".groupCount().by(byNameImgPath).order(local).by(valueDecr).limit(local, 3);"
+        }
+
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
+
+    if (response.status_code == 200):  
+        results = json.loads(response.content)['result']['data']
+        if len(results) > 0:
+            results = results[0]
+            # We lose the sorting from the query results when we do json.loads.
+            # Sort the results in descending order by value.
+            results = sorted(results.items(), key=itemgetter(1), reverse=True)
+            
+            for p in results:  
+                newPrint = {}
+                newPrint['name'] = p[0].split(':', 1)[0]
+                newPrint['imgPath'] = p[0].split(':', 1)[1]
+                prints.append(newPrint)
+                print 'Found personalized recommendation for user with username %s: %s' % (username, newPrint['name'])
+                
+    if len(prints) >= 3:
+        return prints
+    
+    print 'Going to search for generic print recommendations'
+    
+    # Search for the most-purchased prints 
+    gremlin = {
+        # create a new traversal
+        "gremlin": "def gt = graph.traversal();" + 
+            # create a function that handles storing both the image name and image path in the results
+            "java.util.function.Function byNameImgPath = { Vertex v -> \"\" + v.value(\"name\") + \":\" + v.value(\"imgPath\") };" +
+            # search for all of the users
+            "gt.V().has(\"type\",\"user\")" +
+            # go out from the user nodes to find all of the prints that have been bought
+            ".out(\"buys\")" + 
+            # group and sort to find the most purchased prints
+            # limiting to 3 in case of duplicates from the personalized recommendations
+            ".groupCount().by(byNameImgPath).order(local).by(valueDecr).limit(local, 3);"
+        }
+    
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
+
+    if (response.status_code == 200):  
+        results = json.loads(response.content)['result']['data']
+        if len(results) > 0:
+            results = results[0]
+            # We lose the sorting from the query results when we do json.loads.
+            # Sort the results in descending order by value.
+            results = sorted(results.items(), key=itemgetter(1), reverse=True)
+            
+            i = 0
+            while ( len(prints) < 3 and i < len(results) ):
+                p = results[i]  
+                newPrint = {}
+                name = p[0].split(':', 1)[0]
+                if isDuplicateRecommendation(prints, name):
+                    print 'Found duplicate recommendation (%s). Will search for another recommendation.' % name
+                    i += 1
+                    continue
+                newPrint['name'] = name
+                newPrint['imgPath'] = p[0].split(':', 1)[1]
+                prints.append(newPrint)
+                print 'Found most purchased print as recommendation: %s' % newPrint['name']
+                i += 1
+            return prints    
+        
+    raise ValueError('An error occurred while trying to generate print recommendations %s: %s.' % (response.status_code, response.content))
+
+def isDuplicateRecommendation(recommendedPrints, nameOfNewRecommendation):
+    for recommendation in recommendedPrints:
+        if (nameOfNewRecommendation == recommendation['name']):
+             return True
+        else:
+             return False
 
 def insertSampleData():    
     print 'Inserting sample data...'
@@ -245,7 +350,6 @@ def buyPrint(username, printName, date, firstName, lastName, address1, address2,
     buysJson['type'] = 'buys'
 
     response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/edges', json.dumps(buysJson))
-    print json.dumps(buysJson)
     if (response.status_code == 200):
         print 'Print successfully bought: %s' % (json.dumps(buysJson))
     else:
@@ -296,7 +400,7 @@ def initializeGraph():
 def dropGraph():
     data = {
         "gremlin":  "def g = graph.traversal();" + 
-                    "g.E().has('type', 'buys').drop().count();" + 
+                    "g.E().has('type', 'buys').drop();" + 
                     "g.V().has('type', within('print','user')).drop();" 
         }
     response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin' , json.dumps(data))
