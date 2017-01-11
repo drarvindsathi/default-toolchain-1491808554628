@@ -21,11 +21,8 @@ def get (url):
     if (response.status_code == 401) or (response.status_code == 403):
         print 'Expired token. Requesting a new token...'
         getToken()
-        print 'Rerunning the request with headers: %s' % headers
         response = requests.get(url, headers=headers)
-        print 'The response is %s %s' % (response, response.content)
         return response
-    print 'About to return the following response: %s %s' % (response, response.content)
     return response
 
 def getAllPrints():
