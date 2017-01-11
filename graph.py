@@ -27,7 +27,11 @@ def get (url):
 
 def getAllPrints():
     print 'Getting the prints...'
-    response = get(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices?label=print&type=print')
+    gremlin = {
+        "gremlin": "def gt = graph.traversal();" + 
+                   "gt.V().has(\"type\", \"print\");"
+        }
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
     prints = {}
     if (response.status_code == 200):
         prints = json.loads(response.content)['result']['data']
@@ -232,13 +236,21 @@ def updateUser(userNodeId, firstName, lastName, email):
     
 def doesUserExist(username):    
     print 'Getting user with username %s from the graph' % username
-    response = get(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices?label=user&username=' + username)
+    gremlin = {
+        "gremlin": "def gt = graph.traversal();" + 
+                   "gt.V().hasLabel(\"user\").has(\"username\", \"" + username + "\");"
+        }
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
     if len(json.loads(response.content)['result']['data']) > 0 :
         return True
     return False
 
 def getAllUsers():
-    response = get(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices?type=user')
+    gremlin = {
+        "gremlin": "def gt = graph.traversal();" + 
+                   "gt.V().has(\"type\", \"user\");"
+        }
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
     if len(json.loads(response.content)['result']['data']) > 0 :
         return json.loads(response.content)['result']['data']
     return {}
@@ -251,24 +263,32 @@ def createUser(firstName, lastName, username, email):
     
     # if the user does not already exist, create the user
     print 'Creating new user'
-    userJson = {}
-    userJson['label'] = 'user'
-    userJson['firstName'] = firstName
-    userJson['lastName'] = lastName
-    userJson['username'] = username
-    userJson['email'] = email
-    userJson['type'] = 'user'
-
-    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices', 
-                             json.dumps(userJson))
+    gremlin = {
+        "gremlin": "def gt = graph.traversal();" + 
+                   "gt.addV(" +
+                        "label, 'user'," +
+                        "'firstName', '" + firstName + "'," + 
+                        "'lastName', '" + lastName + "'," + 
+                        "'username', '" + username + "'," + 
+                        "'email', '" + email + "'," + 
+                        "'type', 'user'" + 
+                        ");" 
+        }
+    
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', 
+                             json.dumps(gremlin))
     if (response.status_code == 200):
-        print 'User successfully created: %s' % (json.dumps(userJson))
+        print 'User successfully created: %s' % username
     else:
         raise ValueError('User not created successfully: %s. %s. %s' %
-                         (json.dumps(userJson), response.status_code, response.content))
+                         (username, response.status_code, response.content))
         
 def getPrintInfo(name):
-    response = get(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices?label=print&name=' + name)
+    gremlin = {
+        "gremlin": "def gt = graph.traversal();" + 
+                    "gt.V().hasLabel('print').has('name', '" + name + "');"
+    }
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
     
     if (response.status_code == 200):  
         results = json.loads(response.content)['result']['data'] 
@@ -277,83 +297,74 @@ def getPrintInfo(name):
             print 'Found print with name %s.' % name
             return printInfo
 
-    raise ValueError('Unable to find user with name %s' % name)
+    raise ValueError('Unable to find print with name %s' % name)
 
 def createPrint(name, description, price, imgPath):
     
     # check if a print with the given name already exists
-    response = get(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices?label=print&name=' + name)
-    if ((response.status_code == 200) and 
-        ( len(json.loads(response.content)['result']['data']) > 0)):
-            print 'Print with name %s already exists. Print will not be created.' % name
-            return
-        
-    print 'Creating new print'
-    printJson = {}
-    printJson['label'] = 'print'
-    printJson['name'] = name
-    printJson['description'] = description
-    printJson['price'] = price
-    printJson['imgPath'] = imgPath
-    printJson['type'] = 'print'
+    try:
+        getPrintInfo(name)
+        print 'Print with name %s already exists. Print will not be created.' % name
+        return
+    except ValueError:
+        print 'Print with name %s does not exist.  Will create new print...' % name
+    
+    gremlin = {
+    "gremlin": "def gt = graph.traversal();" + 
+               "gt.addV(" +
+                    "label, 'print'," +
+                    "'name', \"" + name + "\"," + 
+                    "'description', \"" + description + "\"," + 
+                    "'price', " + str(price) + "," + 
+                    "'imgPath', '" + imgPath + "'," + 
+                    "'type', 'print'" + 
+                    ");" 
+    }
 
-    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices', 
-                             json.dumps(printJson))
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', 
+                             json.dumps(gremlin))
     if (response.status_code == 200):
-        print 'Print successfully created: %s' % (json.dumps(printJson))
+        print 'Print successfully created: %s' % name
     else:
         raise ValueError('Print not created successfully: %s. %s. %s' %
-                         (json.dumps(printJson), response.status_code, response.content))
+                         (name, response.status_code, response.content))
 
 def getAllOrders():
-    response = get(constants.API_URL + '/' + constants.GRAPH_ID + '/edges?type=buys')
+    gremlin = {
+    "gremlin": "def gt = graph.traversal();" + 
+               "gt.E().has(\"type\", \"buys\");"
+    }
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
     if len(json.loads(response.content)['result']['data']) > 0 :
         return json.loads(response.content)['result']['data']
     return {}
         
 def buyPrint(username, printName, date, firstName, lastName, address1, address2, city, state, zip, paymentMethod):
-
-    # get the user vertex id
-    response = get(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices?label=user&username=' + username)
-    if ((response.status_code == 200) and 
-        ( len(json.loads(response.content)['result']['data']) > 0)):
-            userVertexId = json.loads(response.content)['result']['data'][0]['id']
-    else:
-        raise ValueError('Could not find user with username %s. %s: %s' %
-                         (username, response.status_code, response.content)) 
-            
-    # get the print vertex id
-    response = get(constants.API_URL + '/' + constants.GRAPH_ID + '/vertices?label=print&name=' + printName)
-    if ((response.status_code == 200) and 
-        ( len(json.loads(response.content)['result']['data']) > 0)):
-            printVertexId = json.loads(response.content)['result']['data'][0]['id']
-    else:
-        raise ValueError('Could not find print with name %s. %s: %s' %
-                         (printName, response.status_code, response.content))
-            
-    # create the "buys" edge between the user and print
-    buysJson = {}
-    buysJson['label'] = 'buys'
-    buysJson['outV'] = userVertexId
-    buysJson['inV'] = printVertexId
-    buysJson['properties'] = {}
-    buysJson['properties']['date'] = date
-    buysJson['properties']['firstName'] = firstName
-    buysJson['properties']['lastName'] = lastName
-    buysJson['properties']['address1'] = address1
-    buysJson['properties']['address2'] = address2
-    buysJson['properties']['city'] = city
-    buysJson['properties']['state'] = state
-    buysJson['properties']['zip'] = zip
-    buysJson['properties']['paymentMethod'] = paymentMethod
-    buysJson['type'] = 'buys'
-
-    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/edges', json.dumps(buysJson))
+    
+    gremlin = {
+    "gremlin": "def gt = graph.traversal();" + 
+               "def user = gt.V().hasLabel('user').has('username', '" + username + "').next();" + 
+               "def print = gt.V().hasLabel('print').has('name', '" + printName + "').next();"
+               "user.addEdge('buys', print," +
+                    "'date', '" + str(date) + "'," + 
+                    "'firstName', '" + firstName + "'," + 
+                    "'lastName', '" + lastName + "'," + 
+                    "'address1', '" + address1 + "'," + 
+                    "'address2', '" + address2 + "'," + 
+                    "'city', '" + city + "'," + 
+                    "'state', '" + state + "'," + 
+                    "'zip', " + str(zip) + "," + 
+                    "'paymentMethod', '" + paymentMethod + "'," + 
+                    "'type', 'buys'" + 
+                    ");" 
+    }
+    
+    response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
     if (response.status_code == 200):
-        print 'Print successfully bought: %s' % (json.dumps(buysJson))
+        print 'Print successfully bought: %s' % (json.dumps(gremlin))
     else:
         raise ValueError('Print not successfully bought: %s. %s: %s' %
-                         (json.dumps(buysJson), response.status_code, response.content))
+                         (json.dumps(gremlin), response.status_code, response.content))
         
 def getToken():
     # get the gds-token
