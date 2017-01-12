@@ -12,7 +12,7 @@ def post (url, data):
     response = requests.post(url, data=data, headers=headers)
     if (response.status_code == 401) or (response.status_code == 403):
         print 'Expired token. Requesting a new token...'
-        getToken()
+        updateToken()
         response = requests.post(url, data=data, headers=headers)
     return response
     
@@ -20,7 +20,7 @@ def get (url):
     response = requests.get(url, headers=headers)
     if (response.status_code == 401) or (response.status_code == 403):
         print 'Expired token. Requesting a new token...'
-        getToken()
+        updateToken()
         response = requests.get(url, headers=headers)
         return response
     return response
@@ -366,7 +366,7 @@ def buyPrint(username, printName, date, firstName, lastName, address1, address2,
         raise ValueError('Print not successfully bought: %s. %s: %s' %
                          (json.dumps(gremlin), response.status_code, response.content))
         
-def getToken():
+def updateToken():
     # get the gds-token
     response = requests.get(constants.API_URL + '/_session', 
                      auth=(constants.USERNAME, constants.PASSWORD))
@@ -379,7 +379,7 @@ def getToken():
     print 'Updated headers: %s' % headers
 
 def initializeGraph():
-    getToken()
+    updateToken()
 
     # if the graph is not already created, create it and create the schema and indexes
     print 'Checking to see if graph with id %s exists...' % (constants.GRAPH_ID)
