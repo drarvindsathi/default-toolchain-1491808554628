@@ -198,7 +198,6 @@ def getProfile():
 # Handles the Edit Profile form
 @bottle.post('/profile')
 def updateProfile():
-	userNodeId = request.forms.get("userNodeId")
 	firstName = request.forms.get("firstName")
 	lastName = request.forms.get("lastName")
 	email = request.forms.get("email")
@@ -206,7 +205,7 @@ def updateProfile():
 	
 	try:
 		# update the user in the graph
-		graph.updateUser(userNodeId, firstName, lastName, email)
+		graph.updateUser(username, firstName, lastName, email)
  		
 		return bottle.template('simpleMessage',
 							username = username,
@@ -218,7 +217,6 @@ def updateProfile():
 							firstName=firstName,
 							lastName=lastName,
 							email=email,
-							userNodeId=userNodeId,
 							username=username)
 
 # Displays the Sign In page

@@ -2,7 +2,6 @@
 <div><h2><em>Edit Your Profile</em><h2> </div>
 
 % try:
-%    userNodeId = userInfo['id']
 %    firstName = userInfo['properties']['firstName'][0]['value']
 %    lastName = userInfo['properties']['lastName'][0]['value']
 %    email = userInfo['properties']['email'][0]['value']
@@ -48,8 +47,6 @@
 				% end
 		>
 	</div>
-	
-	<input type="hidden" name="userNodeId" value="{{userNodeId}}">
 	
 	<button value="EditProfile" type="submit" class="btn btn-default">Update Profile</button>
 

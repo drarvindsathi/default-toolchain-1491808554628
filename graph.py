@@ -217,20 +217,21 @@ def getUser(username):
     raise ValueError('Unable to find user with username %s' % username)
 
 # not currently letting usernames be updated
-def updateUser(userNodeId, firstName, lastName, email):
+def updateUser(username, firstName, lastName, email):
     print 'update user: %s' % firstName
     gremlin = {
-        "gremlin": "def gt = graph.traversal();gt.V(" + userNodeId + ")" +
+        "gremlin": "def gt = graph.traversal();" +
+            "gt.V().hasLabel('user').has('username', '" + username + "')" +
             ".property('firstName', '" + firstName + "')" + 
             ".property('lastName', '" + lastName + "')" +
             ".property('email', '" + email + "');" 
         }
     response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
     if (response.status_code == 200): 
-        print 'Successfully updated user with id %s with the following values: %s %s %s' % (userNodeId, firstName, lastName, email)
+        print 'Successfully updated user %s with the following values: %s %s %s' % (username, firstName, lastName, email)
         return True
     else:
-        raise ValueError('An error occurred while trying to update user %s: %s %s.' % (userNodeId, response.status_code, response.content))
+        raise ValueError('An error occurred while trying to update user %s: %s %s.' % (username, response.status_code, response.content))
         return False
         
     
