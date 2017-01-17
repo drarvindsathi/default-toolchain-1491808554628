@@ -22,7 +22,6 @@ def get (url):
         print 'Expired token. Requesting a new token...'
         updateToken()
         response = requests.get(url, headers=headers)
-        return response
     return response
 
 def getAllPrints():
