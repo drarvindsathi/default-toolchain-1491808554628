@@ -47,6 +47,9 @@
   <h3>Schema diagram</h3>
   <img src="/static/images/schema.PNG">
   
+  <h3>Graph of sample data</h3>
+  <img src="/static/images/datagraph.PNG">
+  
   <h3>Insert sample data</h3>
   Click <a href="insertSampleData">here</a> to insert the sample data.  Note that it may take a minute or two.
   
@@ -130,72 +133,30 @@
   </table>
   
   <h3>Orders</h3>
-  <table class="table">
-  	<thead>
-  		<tr>
-	  		<th>
-	  			Date & Time
-	  		</th>
-	  		<th>
-	  			First Name
-	  		</th>
-	  		<th>
-	  			Last Name
-	  		</th>
-	  		<th>
-	  			Address 1
-	  		</th>
-	  		<th>
-	  			Address 2
-	  		</th>
-	  		<th>
-	  			City
-	  		</th>
-	  		<th>
-	  			State
-	  		</th>
-	  		<th>
-	  			Zip
-	  		</th>
-	  		<th>
-	  			Payment Method
-	  		</th>
-  		</tr>
-  	</thead>
-  	<tbody>
+  <div class="container">
   	% for order in orders:
-  		<tr>
-  			<td>
-  				{{order['properties']['date']}}
-  			</td>
-  			<td>
-  				{{order['properties']['firstName']}}
-  			</td>
-  			<td>
-  				{{order['properties']['lastName']}}
-  			</td>
-  			<td>
-  				{{order['properties']['address1']}}
-  			</td>
-  			<td>
-  				{{order['properties']['address2']}}
-  			</td>
-  			<td>
-  				{{order['properties']['city']}}
-  			</td>
-  			<td>
-  				{{order['properties']['state']}}
-  			</td>
-  			<td>
-  				{{order['properties']['zip']}}
-  			</td>
-  			<td>
-  				{{order['properties']['paymentMethod']}}
-  			</td>
-  		</tr>
+  		<div class="row">
+  			<div class="span4">
+  				{{order['date']}} 
+  			</div>
+  			
+  			<div class="span4">
+  				{{order['username']}} <br>
+  				{{order['printName']}} <br>
+  				{{order['paymentMethod']}} <br>
+  			</div>
+  			
+  			<div class="span4">
+  				{{order['firstName']}} {{order['lastName']}} <br>
+  				{{order['address1']}} <br>
+  				% if len(order['address2']) > 0:
+  				{{order['address2']}} <br>
+  				% end
+  				{{order['city']}}, {{order['state']}} {{order['zip']}}<br><br>
+  			</div>
+  		</div>
   	% end
-  	</tbody>
-  </table>
+  </div>
   
   <h3>Visualizing the Orders</h3>
   <p>
@@ -264,7 +225,8 @@
     graph.py</a> to see the associated code.
   </p>
   <p>
-    Video coming soon.
+    The following video will walk you through the theory and code behind the recommendation engine.
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/cAFRpWoN6ZQ?list=PLzpeuWUENMK0pcQ2z5jDlhB54ACZ0dkI5" frameborder="0" allowfullscreen></iframe>
   </p>
 
 % include footer

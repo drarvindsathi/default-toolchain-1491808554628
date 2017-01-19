@@ -332,12 +332,43 @@ def createPrint(name, description, price, imgPath):
 def getAllOrders():
     gremlin = {
     "gremlin": "def gt = graph.traversal();" + 
-               "gt.E().has(\"type\", \"buys\");"
+               "gt.V().has('type', 'user').as('buyer')" + 
+               ".out('buys')" + 
+               ".inE('buys')" + 
+               ".outV().where(eq('buyer'))" + 
+               ".path()"
     }
     response = post(constants.API_URL + '/' + constants.GRAPH_ID + '/gremlin', json.dumps(gremlin))
-    if len(json.loads(response.content)['result']['data']) > 0 :
-        return json.loads(response.content)['result']['data']
-    return {}
+    
+    if (response.status_code == 200):  
+        results = json.loads(response.content)['result']['data'] 
+        orders = []
+        if len(results) > 0: 
+            
+            for result in results:
+                order = {}
+                for object in result['objects']:                   
+                    if object['label']=='user':
+                        order['username'] = object['properties']['username'][0]['value']
+                        continue
+                    if object['label']=='buys':
+                        order['date'] = object['properties']['date']
+                        order['firstName'] = object['properties']['firstName']
+                        order['lastName'] = object['properties']['lastName']
+                        order['address1'] = object['properties']['address1']
+                        order['address2'] = object['properties']['address2']
+                        order['city'] = object['properties']['city']
+                        order['state'] = object['properties']['state']
+                        order['zip'] = object['properties']['zip']
+                        order['paymentMethod'] = object['properties']['paymentMethod']
+                        continue
+                    if object['label']=='print':
+                        order['printName'] = object['properties']['name'][0]['value']
+                        continue
+
+                orders.append(order)
+            
+        return orders
         
 def buyPrint(username, printName, date, firstName, lastName, address1, address2, city, state, zip, paymentMethod):
     
